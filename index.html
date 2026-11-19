@@ -1,1 +1,909 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jadwal Pengiriman Mas MT - Masjid Baitul Gofur Cepogo</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --surface: #131c31;
+      --surface-2: #1b2640;
+      --border: rgba(255, 255, 255, 0.09);
+      --text: #f8fafc;
+      --muted: #94a3b8;
 
+      /* Warna Status */
+      --green-bg: rgba(16, 185, 129, 0.14);
+      --green-border: #10b981;
+      --green-text: #34d399;
+
+      --yellow-bg: rgba(245, 158, 11, 0.18);
+      --yellow-border: #f59e0b;
+      --yellow-text: #fbbf24;
+
+      --blue-bg: rgba(59, 130, 246, 0.14);
+      --blue-border: #3b82f6;
+      --blue-text: #60a5fa;
+
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top, #172554 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 3rem;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      padding: 1rem 0 1.25rem;
+    }
+
+    .badge-masjid {
+      display: inline-block;
+      background: rgba(251, 191, 36, 0.15);
+      color: #fde68a;
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      padding: 0.3rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      margin-bottom: 0.6rem;
+    }
+
+    header h1 {
+      font-size: clamp(1.35rem, 3.8vw, 2rem);
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+
+    .clock-bar {
+      margin-top: 0.65rem;
+      display: inline-flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 0.45rem 1rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      color: #e2e8f0;
+    }
+
+    .clock-time {
+      font-weight: 700;
+      color: var(--yellow-text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Navigasi Tab */
+    .nav-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 0.6rem;
+      margin: 1rem 0 1.5rem;
+    }
+
+    .tab-btn {
+      background: var(--surface);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 0.65rem 1.25rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #3b82f6;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    .view-section {
+      display: none;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    /* Sorotan Utama 3 Kolom: Kiri (Berikutnya) - Tengah (Hari Ini) - Kanan (Sebelumnya) */
+    .spotlight-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.45fr 1fr;
+      gap: 1rem;
+      align-items: stretch;
+      margin-bottom: 1.75rem;
+    }
+
+    @media (max-width: 720px) {
+      .spotlight-grid {
+        grid-template-columns: 1fr;
+      }
+      /* Pada layar HP tetap pertahankan urutan visual: Hari Ini di atas atau tetap Kiri-Tengah-Kanan */
+      .card-today {
+        order: -1;
+      }
+    }
+
+    .spot-card {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    /* Sebelah Kiri: Pengirim Berikutnya (Biru) */
+    .card-next {
+      background: linear-gradient(180deg, var(--blue-bg) 0%, var(--surface) 100%);
+      border-color: rgba(59, 130, 246, 0.45);
+    }
+
+    /* Tengah: Pengirim Hari Ini (Kuning & Besar) */
+    .card-today {
+      background: linear-gradient(180deg, var(--yellow-bg) 0%, var(--surface) 100%);
+      border: 2px solid var(--yellow-border);
+      padding: 1.75rem 1.25rem;
+      box-shadow: 0 10px 30px rgba(245, 158, 11, 0.16);
+    }
+
+    /* Sebelah Kanan: Pengirim Sebelumnya (Hijau) */
+    .card-prev {
+      background: linear-gradient(180deg, var(--green-bg) 0%, var(--surface) 100%);
+      border-color: rgba(16, 185, 129, 0.45);
+    }
+
+    .spot-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 0.45rem;
+    }
+
+    .card-next .spot-label { color: var(--blue-text); }
+    .card-today .spot-label { color: var(--yellow-text); font-size: 0.88rem; }
+    .card-prev .spot-label { color: var(--green-text); }
+
+    .spot-name {
+      font-weight: 800;
+      word-break: break-word;
+    }
+
+    .card-next .spot-name,
+    .card-prev .spot-name {
+      font-size: clamp(1.15rem, 2.5vw, 1.45rem);
+      color: #f1f5f9;
+    }
+
+    .card-today .spot-name {
+      font-size: clamp(1.85rem, 4.8vw, 2.75rem);
+      color: #ffffff;
+      line-height: 1.2;
+      margin: 0.25rem 0;
+    }
+
+    .spot-date {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+    }
+
+    /* Legenda Warna */
+    .legend-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 0.85rem 1rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+    }
+
+    .legend-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      font-size: 0.85rem;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-weight: 600;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot.green { background: var(--green-border); }
+    .dot.yellow { background: var(--yellow-border); }
+    .dot.blue { background: var(--blue-border); }
+
+    /* Daftar Jadwal */
+    .schedule-list {
+      display: grid;
+      gap: 0.6rem;
+    }
+
+    .schedule-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 1rem;
+      border-radius: 12px;
+      border-left: 5px solid transparent;
+      transition: transform 0.15s ease;
+    }
+
+    .schedule-item.status-done {
+      background: var(--green-bg);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-left: 5px solid var(--green-border);
+    }
+
+    .schedule-item.status-today {
+      background: var(--yellow-bg);
+      border: 1px solid rgba(245, 158, 11, 0.55);
+      border-left: 5px solid var(--yellow-border);
+    }
+
+    .schedule-item.status-upcoming {
+      background: var(--blue-bg);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-left: 5px solid var(--blue-border);
+    }
+
+    .item-left {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .item-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .item-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .status-done .item-name { color: var(--green-text); }
+    .status-today .item-name { color: var(--yellow-text); font-size: 1.15rem; }
+    .status-upcoming .item-name { color: var(--blue-text); }
+
+    .item-date {
+      font-size: 0.82rem;
+      color: #cbd5e1;
+    }
+
+    .status-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.28rem 0.65rem;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .status-done .status-pill {
+      background: rgba(16, 185, 129, 0.22);
+      color: var(--green-text);
+    }
+
+    .status-today .status-pill {
+      background: rgba(245, 158, 11, 0.28);
+      color: var(--yellow-text);
+    }
+
+    .status-upcoming .status-pill {
+      background: rgba(59, 130, 246, 0.22);
+      color: var(--blue-text);
+    }
+
+    /* Panel Input / Kelola Anggota */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .panel h2 {
+      font-size: 1.1rem;
+      margin-bottom: 0.35rem;
+      color: #f8fafc;
+    }
+
+    .panel p.desc {
+      font-size: 0.86rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 0.9rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 0.35rem;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="password"],
+    textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: var(--text);
+      padding: 0.7rem 0.85rem;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+
+    textarea {
+      min-height: 140px;
+      resize: vertical;
+    }
+
+    .inline-row {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .inline-row input {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 0.68rem 1.1rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+
+    .btn:hover { opacity: 0.9; }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-success { background: #10b981; color: #06281e; }
+    .btn-warning { background: #f59e0b; color: #271502; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-sm { padding: 0.4rem 0.7rem; font-size: 0.8rem; border-radius: 8px; }
+
+    .member-manage-list {
+      display: grid;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .member-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 0.65rem 0.85rem;
+      border-radius: 10px;
+    }
+
+    .member-row-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .member-row-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .member-row-date {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      background: #10b981;
+      color: #052e16;
+      font-weight: 700;
+      padding: 0.75rem 1.15rem;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: all 0.25s ease;
+      z-index: 99;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge-masjid">Masjid Baitul Gofur Cepogo</div>
+      <h1>Pengingat Pengiriman "Mas MT"</h1>
+      <div class="clock-bar">
+        <span id="wibDateText">Memuat tanggal WIB...</span>
+        <span>•</span>
+        <span class="clock-time" id="wibClockText">--:--:-- WIB</span>
+      </div>
+    </header>
+
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-target="viewDashboard">Jadwal Utama</button>
+      <button class="tab-btn" data-target="viewManage">Input & Kelola Anggota</button>
+    </nav>
+
+    <!-- MENU UTAMA -->
+    <section id="viewDashboard" class="view-section active">
+      <!-- 3 Kolom: Sebelah Kiri (Berikutnya) | Tengah (Hari Ini - Besar) | Sebelah Kanan (Sebelumnya) -->
+      <div class="spotlight-grid">
+        <!-- Sebelah Kiri: Pengirim Hari Berikutnya -->
+        <div class="spot-card card-next">
+          <div class="spot-label">⬅️ Pengirim Hari Berikutnya</div>
+          <div class="spot-name" id="nextSenderName">-</div>
+          <div class="spot-date" id="nextSenderDate">Besok</div>
+        </div>
+
+        <!-- Tengah: Pengirim Hari Ini (Besar) -->
+        <div class="spot-card card-today">
+          <div class="spot-label">📢 Pengirim Hari Ini</div>
+          <div class="spot-name" id="todaySenderName">Belum Ada Jadwal</div>
+          <div class="spot-date" id="todaySenderDate">-</div>
+        </div>
+
+        <!-- Sebelah Kanan: Pengirim Sebelumnya -->
+        <div class="spot-card card-prev">
+          <div class="spot-label">Pengirim Sebelumnya ➡️</div>
+          <div class="spot-name" id="prevSenderName">-</div>
+          <div class="spot-date" id="prevSenderDate">Kemarin</div>
+        </div>
+      </div>
+
+      <!-- Keterangan Warna Status -->
+      <div class="legend-bar">
+        <div class="legend-items">
+          <span class="legend-item" style="color: var(--green-text);">
+            <span class="dot green"></span> Sudah Mengirim
+          </span>
+          <span class="legend-item" style="color: var(--yellow-text);">
+            <span class="dot yellow"></span> Mengirim Hari Ini
+          </span>
+          <span class="legend-item" style="color: var(--blue-text);">
+            <span class="dot blue"></span> Belum Mengirim
+          </span>
+        </div>
+        <div style="font-size: 0.82rem; color: var(--muted);" id="totalCountText">0 Anggota</div>
+      </div>
+
+      <!-- Daftar Lengkap Jadwal -->
+      <div id="scheduleList" class="schedule-list"></div>
+    </section>
+
+    <!-- MENU INPUT & KELOLA ANGGOTA -->
+    <section id="viewManage" class="view-section">
+      <!-- Pengaturan Tanggal Mulai -->
+      <div class="panel">
+        <h2>1. Tanggal Mulai Jadwal Pertama</h2>
+        <p class="desc">Urutan tanggal anggota otomatis dihitung berurutan 1 hari per anggota mulai dari tanggal ini.</p>
+        <div class="inline-row">
+          <input type="date" id="startDateInput" />
+          <button class="btn btn-warning" id="saveStartDateBtn">Simpan Tanggal Mulai</button>
+        </div>
+      </div>
+
+      <!-- Input Massal -->
+      <div class="panel">
+        <h2>2. Input Nama Massal</h2>
+        <p class="desc">Tempel (paste) atau ketik daftar nama sekaligus, <strong>satu nama per baris</strong>. Nomor urut di depan nama otomatis dibersihkan.</p>
+        <div class="form-group">
+          <label for="bulkNamesInput">Daftar Nama Anggota:</label>
+          <textarea id="bulkNamesInput" placeholder="Contoh:&#10;Bpk. Ahmad&#10;Bpk. Budi Santoso&#10;Mas Cahyo&#10;Bpk. Darmono"></textarea>
+        </div>
+        <div class="inline-row">
+          <button class="btn btn-primary" id="appendBulkBtn">+ Tambahkan ke Daftar</button>
+          <button class="btn btn-warning" id="replaceBulkBtn">Ganti Semua Daftar dengan Ini</button>
+        </div>
+      </div>
+
+      <!-- Tambah Satuan & Hapus Anggota -->
+      <div class="panel">
+        <h2>3. Tambah / Hapus Anggota</h2>
+        <p class="desc">Tambah satu nama baru ke urutan terakhir atau hapus anggota tertentu dari jadwal.</p>
+        <div class="inline-row" style="margin-bottom: 1rem;">
+          <input type="text" id="singleNameInput" placeholder="Ketik nama anggota baru..." />
+          <button class="btn btn-success" id="addSingleBtn">+ Tambah Anggota</button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+          <strong style="font-size: 0.9rem; color: #cbd5e1;">Daftar Urutan Anggota Saat Ini:</strong>
+          <button class="btn btn-danger btn-sm" id="clearAllBtn">Hapus Semua</button>
+        </div>
+        <div id="memberManageList" class="member-manage-list"></div>
+      </div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast">Tersimpan!</div>
+
+  <script>
+    const STORAGE_KEY = "jadwal_mas_mt_baitul_gofur_cepogo_v1";
+
+    // Ambil tanggal dan waktu real-time Indonesia Barat (WIB / Asia/Jakarta)
+    function getWIBParts() {
+      const now = new Date();
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Jakarta",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      }).formatToParts(now);
+
+      const map = {};
+      parts.forEach(p => { map[p.type] = p.value; });
+      return {
+        dateStr: `${map.year}-${map.month}-${map.day}`,
+        timeStr: `${map.hour}:${map.minute}:${map.second} WIB`,
+        nowObj: now
+      };
+    }
+
+    // Tambah/kurangi hari pada string YYYY-MM-DD secara aman tanpa geser zona waktu
+    function addDays(dateStr, days) {
+      const [y, m, d] = dateStr.split("-").map(Number);
+      const dt = new Date(Date.UTC(y, m - 1, d + days));
+      const yy = dt.getUTCFullYear();
+      const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+      const dd = String(dt.getUTCDate()).padStart(2, "0");
+      return `${yy}-${mm}-${dd}`;
+    }
+
+    // Format tanggal ke Bahasa Indonesia (contoh: Kamis, 19 Nov 2026)
+    function formatIndoDate(dateStr) {
+      if (!dateStr) return "-";
+      const [y, m, d] = dateStr.split("-").map(Number);
+      const dt = new Date(Date.UTC(y, m - 1, d));
+      return new Intl.DateTimeFormat("id-ID", {
+        timeZone: "UTC",
+        weekday: "long",
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      }).format(dt);
+    }
+
+    // Muat & Simpan Data
+    function loadData() {
+      const wibToday = getWIBParts().dateStr;
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed.members) && parsed.startDate) {
+            return parsed;
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      // Data contoh awal agar tampilan langsung terlihat saat pertama kali dibuka
+      const defaultData = {
+        startDate: addDays(wibToday, -2),
+        members: [
+          "Bpk. H. Sulaiman",
+          "Bpk. Ahmad Fauzi",
+          "Mas Ridwan",
+          "Bpk. Eko Prasetyo",
+          "Bpk. Hartono",
+          "Mas Wahyu Nugroho"
+        ]
+      };
+      saveData(defaultData);
+      return defaultData;
+    }
+
+    function saveData(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 2300);
+    }
+
+    // Bersihkan input baris nama (hapus nomor urut seperti "1. ", "2) ", "- ")
+    function parseNames(text) {
+      return text
+        .split(/\r?\n/)
+        .map(line => line.replace(/^\s*\d+[\.\)\-\:]\s*/, "").replace(/^\s*[\-\*]\s*/, "").trim())
+        .filter(Boolean);
+    }
+
+    let appState = loadData();
+    let lastRenderedWIBDate = "";
+
+    function renderAll() {
+      const wib = getWIBParts();
+      const todayStr = wib.dateStr;
+      const yesterdayStr = addDays(todayStr, -1);
+      const tomorrowStr = addDays(todayStr, 1);
+
+      lastRenderedWIBDate = todayStr;
+
+      // Hitung jadwal masing-masing anggota berdasarkan startDate
+      const scheduled = appState.members.map((name, idx) => {
+        const date = addDays(appState.startDate, idx);
+        let status = "upcoming"; // biru
+        if (date < todayStr) status = "done"; // hijau
+        else if (date === todayStr) status = "today"; // kuning
+        return { index: idx, name, date, status };
+      });
+
+      // Cari pengirim Hari Ini, Sebelumnya (Kemarin), dan Berikutnya (Besok)
+      const todayItem = scheduled.find(item => item.date === todayStr);
+      const prevItem = scheduled.find(item => item.date === yesterdayStr);
+      const nextItem = scheduled.find(item => item.date === tomorrowStr);
+
+      // Update Kartu Tengah (Hari Ini - Besar)
+      document.getElementById("todaySenderName").textContent = todayItem ? todayItem.name : "Tidak Ada Jadwal";
+      document.getElementById("todaySenderDate").textContent = formatIndoDate(todayStr);
+
+      // Update Kartu Sebelah Kiri (Hari Berikutnya / Besok)
+      document.getElementById("nextSenderName").textContent = nextItem ? nextItem.name : "-";
+      document.getElementById("nextSenderDate").textContent = nextItem ? formatIndoDate(tomorrowStr) : `Besok (${formatIndoDate(tomorrowStr)})`;
+
+      // Update Kartu Sebelah Kanan (Sebelumnya / Kemarin)
+      document.getElementById("prevSenderName").textContent = prevItem ? prevItem.name : "-";
+      document.getElementById("prevSenderDate").textContent = prevItem ? formatIndoDate(yesterdayStr) : `Kemarin (${formatIndoDate(yesterdayStr)})`;
+
+      document.getElementById("totalCountText").textContent = `${scheduled.length} Anggota`;
+
+      // Render Daftar Jadwal Utama
+      const listEl = document.getElementById("scheduleList");
+      if (scheduled.length === 0) {
+        listEl.innerHTML = `<div class="empty-state">Belum ada daftar anggota. Buka tab <strong>Input & Kelola Anggota</strong> untuk menambahkan nama.</div>`;
+      } else {
+        listEl.innerHTML = scheduled.map(item => {
+          let statusClass = "status-upcoming";
+          let statusLabel = "Belum Mengirim";
+          if (item.status === "done") {
+            statusClass = "status-done";
+            statusLabel = "Sudah Mengirim";
+          } else if (item.status === "today") {
+            statusClass = "status-today";
+            statusLabel = "Hari Ini";
+          }
+
+          return `
+            <div class="schedule-item ${statusClass}">
+              <div class="item-left">
+                <div class="item-num">${item.index + 1}</div>
+                <div>
+                  <div class="item-name">${escapeHtml(item.name)}</div>
+                  <div class="item-date">${formatIndoDate(item.date)}</div>
+                </div>
+              </div>
+              <span class="status-pill">${statusLabel}</span>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Render Daftar Kelola Anggota di Menu Input
+      document.getElementById("startDateInput").value = appState.startDate;
+      const manageListEl = document.getElementById("memberManageList");
+      if (scheduled.length === 0) {
+        manageListEl.innerHTML = `<div class="empty-state">Daftar anggota masih kosong.</div>`;
+      } else {
+        manageListEl.innerHTML = scheduled.map(item => `
+          <div class="member-row">
+            <div class="member-row-info">
+              <span class="member-row-name">${item.index + 1}. ${escapeHtml(item.name)}</span>
+              <span class="member-row-date">Jadwal: ${formatIndoDate(item.date)}</span>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="removeMember(${item.index})">Hapus</button>
+          </div>
+        `).join("");
+      }
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // Hapus anggota per baris
+    window.removeMember = function(index) {
+      const removed = appState.members[index];
+      appState.members.splice(index, 1);
+      saveData(appState);
+      renderAll();
+      showToast(`"${removed}" dihapus dari jadwal`);
+    };
+
+    // Update jam real-time WIB setiap detik & otomatis ganti hari saat pukul 00:00 WIB
+    function updateClock() {
+      const wib = getWIBParts();
+      const fullDate = new Intl.DateTimeFormat("id-ID", {
+        timeZone: "Asia/Jakarta",
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      }).format(wib.nowObj);
+
+      document.getElementById("wibDateText").textContent = fullDate;
+      document.getElementById("wibClockText").textContent = wib.timeStr;
+
+      if (lastRenderedWIBDate && lastRenderedWIBDate !== wib.dateStr) {
+        renderAll();
+      }
+    }
+
+    // Navigasi Tab
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".view-section").forEach(s => s.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.target).classList.add("active");
+      });
+    });
+
+    // Simpan Tanggal Mulai
+    document.getElementById("saveStartDateBtn").addEventListener("click", () => {
+      const val = document.getElementById("startDateInput").value;
+      if (!val) return alert("Pilih tanggal mulai terlebih dahulu.");
+      appState.startDate = val;
+      saveData(appState);
+      renderAll();
+      showToast("Tanggal mulai diperbarui!");
+    });
+
+    // Tambah Massal ke Daftar yang Ada
+    document.getElementById("appendBulkBtn").addEventListener("click", () => {
+      const raw = document.getElementById("bulkNamesInput").value;
+      const names = parseNames(raw);
+      if (names.length === 0) return alert("Masukkan minimal satu nama.");
+      appState.members.push(...names);
+      saveData(appState);
+      document.getElementById("bulkNamesInput").value = "";
+      renderAll();
+      showToast(`${names.length} anggota ditambahkan!`);
+    });
+
+    // Ganti Semua Daftar dengan Input Massal
+    document.getElementById("replaceBulkBtn").addEventListener("click", () => {
+      const raw = document.getElementById("bulkNamesInput").value;
+      const names = parseNames(raw);
+      if (names.length === 0) return alert("Masukkan daftar nama terlebih dahulu.");
+      if (!confirm(`Ganti seluruh daftar dengan ${names.length} nama baru ini?`)) return;
+      appState.members = names;
+      saveData(appState);
+      document.getElementById("bulkNamesInput").value = "";
+      renderAll();
+      showToast("Seluruh daftar diperbarui!");
+    });
+
+    // Tambah Satu Anggota
+    document.getElementById("addSingleBtn").addEventListener("click", () => {
+      const input = document.getElementById("singleNameInput");
+      const name = input.value.trim();
+      if (!name) return alert("Ketik nama anggota terlebih dahulu.");
+      appState.members.push(name);
+      saveData(appState);
+      input.value = "";
+      renderAll();
+      showToast(`"${name}" berhasil ditambahkan!`);
+    });
+
+    document.getElementById("singleNameInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") document.getElementById("addSingleBtn").click();
+    });
+
+    // Hapus Semua Anggota
+    document.getElementById("clearAllBtn").addEventListener("click", () => {
+      if (appState.members.length === 0) return;
+      if (!confirm("Hapus semua nama anggota dari jadwal?")) return;
+      appState.members = [];
+      saveData(appState);
+      renderAll();
+      showToast("Semua anggota dihapus");
+    });
+
+    // Inisialisasi
+    renderAll();
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+</body>
+</html>
